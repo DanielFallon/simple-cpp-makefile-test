@@ -1,0 +1,5 @@
+# Program objects
+/build/
+main
+
+*.result
