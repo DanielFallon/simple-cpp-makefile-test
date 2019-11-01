@@ -1,37 +1,35 @@
-## C++ Build
+.PHONY: default
+default: test
+
+# C++ Build
 CXX      := g++
 CXXFLAGS := -pedantic-errors -Wall -Wextra -Werror
 LDFLAGS  := -L/usr/lib -lstdc++ -lm
+
+# Source Files
 SOURCES  := $(shell find src/ -type f -name '*.cpp')
 
 # Output Artifacts
 OBJ_DIR  := build
 OBJECTS  := $(patsubst src/%.cpp,$(OBJ_DIR)/%.o,$(SOURCES))
-PROGRAM   := main
+PROGRAM  := main
 
-# Testing Files
-TESTS := $(patsubst %.out,%,$(wildcard test/*.out))
+# Test Output Files
+TESTS    := $(patsubst %.out,%,$(wildcard test/*.out))
 
-
-.PHONY: test
-test: $(TESTS)
-
+# Pattern rule to compile *.cpp files
 $(OBJ_DIR)/%.o: src/%.cpp
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
+.PHONY: build
+build: $(PROGRAM)
 $(PROGRAM): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LDFLAGS) -o $(PROGRAM) $(OBJECTS)
 
-debug: 
-
-clean:
-	-@rm -rvf $(OBJ_DIR)
-	-@rm -vf $(PROGRAM)
-	-@rm -vf tests/*.result
-
+.PHONY: test $(TESTS)
+test: $(TESTS)
 # Enable debugging symbols for tests
-.PHONY: $(TESTS)
 $(TESTS): CXXFLAGS += -DDEBUG -g
 $(TESTS): $(PROGRAM)
 	-@echo "[Begin $@]"
@@ -45,4 +43,9 @@ $(TESTS): $(PROGRAM)
 		|| ( printf "\033[1;31m  Actual Output: $@.result\n" && \
 			 cat '$@.result' | sed 's/^/  |/' && \
 			 printf "! Test Case Fail\033[0m\n" )
-	-@echo "[End $@]"
+
+.PHONY: clean
+clean:
+	-@rm -rvf $(OBJ_DIR)
+	-@rm -vf $(PROGRAM)
+	-@rm -vf tests/*.result
